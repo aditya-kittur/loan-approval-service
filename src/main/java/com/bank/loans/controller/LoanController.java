@@ -11,8 +11,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/loans")
 public class LoanController {
 
-    @Autowired
-    private LoanApprovalService loanApprovalService;
+    private final LoanApprovalService loanApprovalService;
+
+    public LoanController(LoanApprovalService loanApprovalService) {
+        this.loanApprovalService = loanApprovalService;
+    }
 
     @PostMapping("/apply")
     public ResponseEntity<LoanDecisionResponse> applyForLoan(
