@@ -1,0 +1,7 @@
+{
+  "projectName": "loan-approval-python",
+  "path": "D:\\GHCP\\Level - 3\\Day1\\python\\loan-approval-python",
+  "techStack": ["Python 3.14", "FastAPI", "pytest"],
+  "activeGoal": "Fix ASGI app loading error in app.main:app",
+  "startupCommand": "uvicorn app.main:app --reload"
+}
