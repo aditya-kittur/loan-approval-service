@@ -1,0 +1,302 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Loan Officer Dashboard - Zenith Bank</title>
+<style>
+:root{--bg:#f4f6f9;--surf:#fff;--bdr:#d1d9e0;--pri:#1a56db;--prih:#1241b0;--red:#dc2626;--grn:#16a34a;--txt:#1e293b;--muted:#64748b;--r:8px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--txt)}
+header{background:var(--pri);color:#fff;padding:16px 32px}
+header h1{font-size:1.2rem;font-weight:600}
+header p{font-size:.82rem;opacity:.75;margin-top:2px}
+main{max-width:1200px;margin:0 auto;padding:24px 16px;display:flex;flex-direction:column;gap:24px}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:768px){.panels{grid-template-columns:1fr}}
+.card{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);padding:24px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card h2{font-size:1rem;font-weight:600;color:var(--pri);margin-bottom:18px;padding-bottom:10px;border-bottom:2px solid var(--bg)}
+.fg{margin-bottom:14px}
+label{display:block;font-size:.83rem;font-weight:500;color:var(--muted);margin-bottom:5px}
+.req{color:var(--red)}
+.hint{font-size:.75rem;color:var(--muted);margin-top:4px}
+.warn{font-size:.75rem;color:#92400e;margin-top:4px;display:none}
+.warn.on,.err-msg.on{display:block}
+.err-msg{font-size:.75rem;color:var(--red);margin-top:4px;display:none}
+input[type=text],input[type=number],select{width:100%;padding:9px 12px;border:1px solid var(--bdr);border-radius:var(--r);font-size:.95rem;color:var(--txt);background:#fff}
+input:focus,select:focus{outline:none;border-color:var(--pri)}
+input.bad,select.bad{border-color:var(--red)}
+input.ok{border-color:var(--grn)}
+.slider-row{display:flex;align-items:center;gap:12px}
+input[type=range]{flex:1;accent-color:var(--pri);cursor:pointer}
+.zone{font-size:.75rem;font-weight:600;padding:3px 10px;border-radius:4px;display:inline-block}
+.zone-h{background:#dcfce7;color:#15803d}
+.zone-m{background:#fef9c3;color:#92400e}
+.zone-l{background:#fee2e2;color:#b91c1c}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+button{padding:10px 20px;border:none;border-radius:var(--r);font-size:.9rem;font-weight:600;cursor:pointer}
+.bp{background:var(--pri);color:#fff}.bp:hover{background:var(--prih)}
+.bs{background:var(--bg);color:var(--txt);border:1px solid var(--bdr)}.bs:hover{background:#e2e8f0}
+.be{background:#0f766e;color:#fff}.be:hover{background:#0d5f58}
+#banner{display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:var(--r);padding:12px 16px;margin-bottom:14px;font-size:.85rem;color:#b91c1c}
+#banner ul{margin:6px 0 0 18px}
+.placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:220px;color:var(--muted);font-size:.9rem;text-align:center;gap:8px}
+.placeholder svg{opacity:.25}
+.badge{display:inline-block;font-size:1.05rem;font-weight:800;padding:5px 20px;border-radius:999px;letter-spacing:.07em;margin-bottom:16px}
+.ap{background:#dcfce7;color:var(--grn)}.rj{background:#fee2e2;color:var(--red)}
+.drow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bg);font-size:.9rem}
+.drow:last-child{border-bottom:none}
+.dl{color:var(--muted)}.dv{font-weight:600}
+.rate-v{color:var(--grn);font-size:1.1rem;font-weight:700}
+.reas-v{color:var(--red)}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--bg);color:var(--muted);font-weight:600;text-align:left;padding:9px 12px;border-bottom:2px solid var(--bdr)}
+td{padding:9px 12px;border-bottom:1px solid var(--bdr)}
+tr:last-child td{border-bottom:none}
+.hb{font-size:.76rem;font-weight:700;padding:2px 10px;border-radius:999px}
+.ha{background:#dcfce7;color:var(--grn)}.hr{background:#fee2e2;color:var(--red)}
+.empty{text-align:center;color:var(--muted);padding:20px 0;font-size:.88rem}
+</style>
+</head>
+<body>
+<header>
+  <h1>Zenith Bank - Loan Officer Dashboard</h1>
+  <p>Personal Lending Platform</p>
+</header>
+<main>
+  <div class="panels">
+    <section class="card">
+      <h2>Application Form</h2>
+      <div id="banner"><strong>Please fix the following:</strong><ul id="blist"></ul></div>
+      <div class="fg">
+        <label for="fId">Applicant ID <span class="req">*</span></label>
+        <input type="text" id="fId" placeholder="CUST-00123" oninput="chkId()" />
+        <div class="hint">Format: CUST-XXXXX (e.g. CUST-00123)</div>
+        <div class="warn" id="wId">Tip: use CUST-XXXXX format for consistency</div>
+        <div class="err-msg" id="eId">Applicant ID is required.</div>
+      </div>
+      <div class="fg">
+        <label for="fAmt">Requested Amount (Rs.) <span class="req">*</span></label>
+        <input type="number" id="fAmt" placeholder="e.g. 250000" min="10000" max="5000000" oninput="chkAmt()" />
+        <div class="hint">Min: Rs. 10,000 | Max: Rs. 50,00,000</div>
+        <div class="err-msg" id="eAmt">Must be between Rs. 10,000 and Rs. 50,00,000.</div>
+      </div>
+      <div class="fg">
+        <label>Credit Score (CIBIL): <strong id="sDisp" style="color:var(--pri)">600</strong>
+          &nbsp;<span id="sZone" class="zone zone-m">Standard - 12%</span></label>
+        <div class="slider-row">
+          <input type="range" id="fScore" min="300" max="900" value="600" oninput="chkScore(this.value)" />
+        </div>
+        <div class="hint">300-900 | 750+ Excellent (7.5%) | 600-749 Standard (12%) | Below 600 Rejected</div>
+      </div>
+      <div class="fg">
+        <label for="fInc">Annual Income (Rs.)</label>
+        <input type="number" id="fInc" placeholder="e.g. 600000 (optional)" min="0" />
+        <div class="hint">Optional - for officer records only</div>
+      </div>
+      <div class="fg">
+        <label for="fEmp">Employment Status</label>
+        <select id="fEmp">
+          <option value="SALARIED" selected>SALARIED</option>
+          <option value="SELF_EMPLOYED">SELF_EMPLOYED</option>
+          <option value="UNEMPLOYED">UNEMPLOYED</option>
+          <option value="RETIRED">RETIRED</option>
+        </select>
+        <div class="hint">Select applicant employment type</div>
+      </div>
+      <div class="btns">
+        <button class="bp" onclick="doEval()">Evaluate Application</button>
+        <button class="bs" onclick="doReset()">Reset</button>
+        <button class="be" onclick="doExport()">Export Decision</button>
+      </div>
+    </section>
+    <section class="card" id="rPanel">
+      <h2>Decision Result</h2>
+      <div id="rBadge">
+        <div class="placeholder">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          <div>Fill the form and click<br><strong>Evaluate Application</strong></div>
+        </div>
+      </div>
+      <div id="rRateRow" class="drow" style="display:none"><span class="dl">Interest Rate</span><span class="dv rate-v" id="rRate"></span></div>
+      <div id="rReasRow" class="drow" style="display:none"><span class="dl">Reason</span><span class="dv reas-v" id="rReas"></span></div>
+      <div class="drow"><span class="dl">Applicant ID</span><span class="dv" id="rId"></span></div>
+      <div class="drow"><span class="dl">Requested Amount</span><span class="dv" id="rAmt"></span></div>
+      <div class="drow"><span class="dl">Credit Score</span><span class="dv" id="rScr"></span></div>
+      <div class="drow"><span class="dl">Employment</span><span class="dv" id="rEmp"></span></div>
+      <div class="drow"><span class="dl">Decision Time</span><span class="dv" id="rTs"></span></div>
+    </section>
+  </div>
+  <section class="card">
+    <h2>Evaluation History (Last 5)</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Applicant ID</th><th>Amount (Rs.)</th><th>Credit Score</th><th>Decision</th><th>Time</th></tr></thead>
+        <tbody id="hBody"><tr><td colspan="5" class="empty">No evaluations yet.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<script>
+var appHistory = [];
+var lastDec = null;
+
+function chkId() {
+  var v = document.getElementById('fId').value.trim();
+  var inp = document.getElementById('fId');
+  var em = document.getElementById('eId');
+  var wm = document.getElementById('wId');
+  em.classList.remove('on'); wm.classList.remove('on');
+  inp.classList.remove('bad'); inp.classList.remove('ok');
+  if (!v) { inp.classList.add('bad'); em.classList.add('on'); }
+  else if (!/^CUST-\d+$/i.test(v)) { inp.classList.add('ok'); wm.classList.add('on'); }
+  else { inp.classList.add('ok'); }
+}
+
+function chkAmt() {
+  var raw = document.getElementById('fAmt').value;
+  var inp = document.getElementById('fAmt');
+  var em = document.getElementById('eAmt');
+  em.classList.remove('on'); inp.classList.remove('bad'); inp.classList.remove('ok');
+  var n = parseFloat(raw);
+  if (!raw || isNaN(n) || n < 10000 || n > 5000000) {
+    inp.classList.add('bad');
+    em.textContent = !raw ? 'Amount is required.' : (n < 10000 ? 'Too low - minimum is Rs. 10,000.' : 'Too high - maximum is Rs. 50,00,000.');
+    em.classList.add('on');
+  } else { inp.classList.add('ok'); }
+}
+
+function chkScore(v) {
+  var n = parseInt(v, 10);
+  document.getElementById('sDisp').textContent = n;
+  var z = document.getElementById('sZone');
+  if (n >= 750) { z.textContent = 'Excellent - 7.5%'; z.className = 'zone zone-h'; }
+  else if (n >= 600) { z.textContent = 'Standard - 12%'; z.className = 'zone zone-m'; }
+  else { z.textContent = 'High Risk - Rejected'; z.className = 'zone zone-l'; }
+}
+
+function doEval() {
+  var idv  = document.getElementById('fId').value.trim();
+  var amtv = document.getElementById('fAmt').value;
+  var amt  = parseFloat(amtv);
+  var msgs = [];
+  if (!idv) msgs.push('Applicant ID is required.');
+  if (!amtv || isNaN(amt) || amt < 10000 || amt > 5000000)
+    msgs.push('Requested Amount must be between Rs. 10,000 and Rs. 50,00,000.');
+  var bn = document.getElementById('banner');
+  if (msgs.length > 0) {
+    document.getElementById('blist').innerHTML = msgs.map(function(m){ return '<li>'+m+'</li>'; }).join('');
+    bn.style.display = 'block';
+    return;
+  }
+  bn.style.display = 'none';
+  var score = parseInt(document.getElementById('fScore').value, 10);
+  var inc   = document.getElementById('fInc').value || 'N/A';
+  var emp   = document.getElementById('fEmp').value;
+  var ts    = new Date().toLocaleString();
+  var st, rt, msg;
+  if (score >= 750)      { st='APPROVED'; rt='7.5%';  msg='Excellent credit profile'; }
+  else if (score >= 600) { st='APPROVED'; rt='12.0%'; msg='Standard credit profile'; }
+  else                   { st='REJECTED'; rt=null;    msg='Credit score below minimum threshold'; }
+  lastDec = {id:idv, amt:amt, score:score, inc:inc, emp:emp, st:st, rt:rt, msg:msg, ts:ts};
+  renderResult(lastDec);
+  addHistory(lastDec);
+}
+
+function renderResult(d) {
+  var cls = d.st === 'APPROVED' ? 'ap' : 'rj';
+  document.getElementById('rBadge').innerHTML = '<span class="badge '+cls+'">'+d.st+'</span>';
+  if (d.st === 'APPROVED') {
+    document.getElementById('rRateRow').style.display = 'flex';
+    document.getElementById('rReasRow').style.display = 'none';
+    document.getElementById('rRate').textContent = d.rt + ' p.a.';
+  } else {
+    document.getElementById('rRateRow').style.display = 'none';
+    document.getElementById('rReasRow').style.display = 'flex';
+    document.getElementById('rReas').textContent = d.msg;
+  }
+  document.getElementById('rId').textContent  = d.id;
+  document.getElementById('rAmt').textContent = 'Rs. ' + d.amt.toLocaleString('en-IN');
+  document.getElementById('rScr').textContent = d.score;
+  document.getElementById('rEmp').textContent = d.emp;
+  document.getElementById('rTs').textContent  = d.ts;
+}
+
+function addHistory(d) {
+  appHistory.unshift(d);
+  if (appHistory.length > 5) appHistory = appHistory.slice(0, 5);
+  var tb = document.getElementById('hBody');
+  tb.innerHTML = '';
+  appHistory.forEach(function(e) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>'+xss(e.id)+'</td>'
+      + '<td>Rs. '+e.amt.toLocaleString('en-IN')+'</td>'
+      + '<td>'+e.score+'</td>'
+      + '<td><span class="hb '+(e.st==='APPROVED'?'ha':'hr')+'">'+e.st+'</span></td>'
+      + '<td>'+e.ts+'</td>';
+    tb.appendChild(tr);
+  });
+}
+
+function doReset() {
+  document.getElementById('fId').value   = '';
+  document.getElementById('fAmt').value  = '';
+  document.getElementById('fScore').value = 600;
+  chkScore(600);
+  document.getElementById('fInc').value  = '';
+  document.getElementById('fEmp').value  = 'SALARIED';
+  ['fId','fAmt'].forEach(function(id){
+    var el = document.getElementById(id);
+    el.classList.remove('bad'); el.classList.remove('ok');
+  });
+  document.querySelectorAll('.err-msg,.warn').forEach(function(el){ el.classList.remove('on'); });
+  document.getElementById('banner').style.display = 'none';
+  document.getElementById('rBadge').innerHTML =
+    '<div class="placeholder"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg><div>Fill the form and click<br><strong>Evaluate Application</strong></div></div>';
+  document.getElementById('rRateRow').style.display = 'none';
+  document.getElementById('rReasRow').style.display = 'none';
+  ['rId','rAmt','rScr','rEmp','rTs'].forEach(function(id){ document.getElementById(id).textContent=''; });
+  appHistory = []; lastDec = null;
+  document.getElementById('hBody').innerHTML = '<tr><td colspan="5" class="empty">No evaluations yet.</td></tr>';
+}
+
+function doExport() {
+  if (!lastDec) { alert('No decision yet. Evaluate an application first.'); return; }
+  var d = lastDec;
+  var rr = d.st==='APPROVED' ? '<tr><td>Interest Rate</td><td>'+d.rt+' p.a.</td></tr>' : '';
+  var h = '<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Loan Decision</title>'
+    + '<style>body{font-family:sans-serif;max-width:640px;margin:40px auto;color:#1e293b}'
+    + 'h1{color:#1a56db;margin-bottom:4px}p{color:#64748b;font-size:.85rem;margin-bottom:20px}'
+    + 'table{width:100%;border-collapse:collapse}th{background:#f4f6f9;text-align:left;padding:8px 12px;color:#64748b;border-bottom:1px solid #d1d9e0}'
+    + 'td{padding:8px 12px;border-bottom:1px solid #e2e8f0}'
+    + '.ap{background:#dcfce7;color:#16a34a;padding:2px 12px;border-radius:999px;font-weight:700}'
+    + '.rj{background:#fee2e2;color:#dc2626;padding:2px 12px;border-radius:999px;font-weight:700}'
+    + 'button{margin-top:20px;padding:9px 22px;background:#1a56db;color:#fff;border:none;border-radius:6px;cursor:pointer}'
+    + '@media print{button{display:none}}</style></head><body>'
+    + '<h1>Zenith Bank - Loan Decision Report</h1><p>Generated on '+d.ts+'</p>'
+    + '<table>'
+    + '<tr><th colspan="2">Applicant Details</th></tr>'
+    + '<tr><td>Applicant ID</td><td>'+xss(d.id)+'</td></tr>'
+    + '<tr><td>Employment</td><td>'+xss(d.emp)+'</td></tr>'
+    + '<tr><td>Annual Income</td><td>'+xss(String(d.inc))+'</td></tr>'
+    + '<tr><th colspan="2">Loan Request</th></tr>'
+    + '<tr><td>Requested Amount</td><td>Rs. '+d.amt.toLocaleString('en-IN')+'</td></tr>'
+    + '<tr><td>Credit Score</td><td>'+d.score+'</td></tr>'
+    + '<tr><th colspan="2">Decision</th></tr>'
+    + '<tr><td>Status</td><td><span class="'+(d.st==='APPROVED'?'ap':'rj')+'">'+d.st+'</span></td></tr>'
+    + rr
+    + '<tr><td>'+(d.st==='APPROVED'?'Message':'Reason')+'</td><td>'+xss(d.msg)+'</td></tr>'
+    + '<tr><td>Decision Time</td><td>'+d.ts+'</td></tr>'
+    + '</table><button onclick="window.print()">Print / Save as PDF</button></body></html>';
+  var w = window.open('','_blank');
+  w.document.write(h);
+  w.document.close();
+}
+
+function xss(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
