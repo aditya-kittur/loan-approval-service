@@ -1,0 +1,14 @@
+# Editor Directories
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+
+# Windows OS Files
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Global Logs
+*.log
