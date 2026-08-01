@@ -176,7 +176,13 @@ function chkScore(v) {
   else { z.textContent = 'High Risk - Rejected'; z.className = 'zone zone-l'; }
 }
 
-function doEval() {
+/* ── API configuration ──────────────────────────────────────────────────────
+   FastAPI backend (run with: uvicorn app.main:app --reload --port 8000).
+   Change API_BASE if your server runs on a different host / port.           */
+var API_BASE = 'http://localhost:8000';
+
+async function doEval() {
+  var btn  = document.querySelector('.bp');
   var idv  = document.getElementById('fId').value.trim();
   var amtv = document.getElementById('fAmt').value;
   var amt  = parseFloat(amtv);
@@ -191,17 +197,49 @@ function doEval() {
     return;
   }
   bn.style.display = 'none';
+
   var score = parseInt(document.getElementById('fScore').value, 10);
-  var inc   = document.getElementById('fInc').value || 'N/A';
+  var incRaw = document.getElementById('fInc').value;
+  var inc   = incRaw || '0';
   var emp   = document.getElementById('fEmp').value;
   var ts    = new Date().toLocaleString();
-  var st, rt, msg;
-  if (score >= 750)      { st='APPROVED'; rt='7.5%';  msg='Excellent credit profile'; }
-  else if (score >= 600) { st='APPROVED'; rt='12.0%'; msg='Standard credit profile'; }
-  else                   { st='REJECTED'; rt=null;    msg='Credit score below minimum threshold'; }
-  lastDec = {id:idv, amt:amt, score:score, inc:inc, emp:emp, st:st, rt:rt, msg:msg, ts:ts};
-  renderResult(lastDec);
-  addHistory(lastDec);
+
+  /* ── Call FastAPI POST /api/loans/evaluate ──────────────────────────── */
+  btn.textContent = 'Evaluating…';
+  btn.disabled = true;
+  try {
+    var resp = await fetch(API_BASE + '/api/loans/evaluate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        applicant_id:     idv,
+        requested_amount: amt,
+        credit_score:     score,
+        annual_income:    parseFloat(inc) || 0,
+        employment_status: emp
+      })
+    });
+
+    if (!resp.ok) {
+      var errBody = await resp.text();
+      throw new Error('Server returned ' + resp.status + ': ' + errBody);
+    }
+
+    var data = await resp.json();
+    /* data shape: { applicant_id, status, interest_rate, reason } */
+    var rt = data.interest_rate != null ? parseFloat(data.interest_rate).toFixed(1) + '%' : null;
+    lastDec = { id: idv, amt: amt, score: score, inc: incRaw || 'N/A',
+                emp: emp, st: data.status, rt: rt, msg: data.reason, ts: ts };
+    renderResult(lastDec);
+    addHistory(lastDec);
+
+  } catch (e) {
+    document.getElementById('blist').innerHTML = '<li>' + xss(e.message) + '</li>';
+    bn.style.display = 'block';
+  } finally {
+    btn.textContent = 'Evaluate Application';
+    btn.disabled = false;
+  }
 }
 
 function renderResult(d) {
