@@ -7,8 +7,8 @@ export interface LoanRequest {
 }
 
 export interface LoanDecision {
-  applicantId: string;
+  applicationId: number | null;
   status: 'APPROVED' | 'REJECTED';
   interestRate: number | null;
-  reason: string;
+  message: string;
 }

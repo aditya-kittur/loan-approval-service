@@ -10,7 +10,7 @@ export function useLoanApproval() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('/api/loans/evaluate', {
+      const response = await fetch('/api/loans/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request),
