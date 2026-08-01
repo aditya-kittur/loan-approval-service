@@ -16,7 +16,7 @@ app.post('/api/loans/evaluate', (req, res) => {
 app.get('/api/health', (_req, res) => {
   const health: HealthStatus = {
     status: 'ok',
-    service: 'loan-approval-service',
+    service: 'loan-approval-react',
     uptime: Math.floor(process.uptime()),
   };
   res.json(health);
